@@ -1,3 +1,5 @@
+package C4_ObjectAndClass;
+
 /**s
  * @author hbcccc
  * <img src="doc-files/pic.png" />
