@@ -69,7 +69,7 @@ class MultiInherit{
     public static void main(String[] args) {
         MultiInherit m = new MultiInherit();
         MultiInherit.D md = m.getD();
-        //实际调用哪个函数，在编译阶段会生成“方法表”，指定了类的函数的函数入口：如D的f（int）入口是C.f(int)， f（double）入口是
+        //实际调用哪个函数，在编译阶段会生成“方法表”，指定了类的函数的函数入口：如D的f（int）入口是C.f(int)， f（double）入口是A.(double)
         // ，然后运行时再判断调用哪个（对于public），称为“动态绑定”。
         md.f(0);
         md.f(2.2);
