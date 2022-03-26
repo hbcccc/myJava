@@ -23,14 +23,35 @@ public class Manager extends Employee {
     }
 
     public static void main(String[] args) {
+        // test1();
+        test2();
+    }
+
+    private static void  test1(){
         Manager[] managers = new Manager[10];
         Employee[] employees = managers;
 
         //this can't work. Never do that !
+        //reason: employees[0] is actually a Manager pointer(Manager x), son can't point to his father(x = new(Employee) )
+        
+        //why employees[0] is still a Manger pointer? since we already Employee[] e = ms;
+        //because every Array stores the type mark when init.(In this case, type mark is Manager)
+        
         employees[0] = new Employee("hbc",500.0);
 
         managers[0].setBonus(400);
     }
+
+    private static void test2(){
+        //this can work. beacause e is just a normal Employee pointer.
+        Manager m = new Manager("hbc", 500.0);
+        Employee e = m;
+        e = new Employee("hbc", 500.0);
+        m.setBonus(400);
+        System.out.println("m salaray: "+m.getSalary());
+        System.out.println("e salaray: "+ e.getSalary());
+    }
+
 }
 
 class MultiInherit{
