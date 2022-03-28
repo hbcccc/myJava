@@ -12,7 +12,7 @@
     ```
 - 一个类可以实现多个接口,用 `"," ` 隔开
     ```java
-    public class hbc extends student implemnts runable, compareTo{...}
+    public class hbc extends student implements runable, compareTo{...}
     ```
 - 默认方法的冲突：可能是多个接口有同样名和参数的默认方法（接口间），也可能是一个类的父类和当前类实现的接口存在同样的方法（父类-接口）。
     ```java
