@@ -8,5 +8,7 @@
 
 
 
-<img src="C:\Users\12425\Desktop\myJava\SpringBoot\pic\1687707210997.jpg;" />
+<img src="pic/1687707210997.jpg;" />
+
+
 
