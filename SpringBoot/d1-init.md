@@ -44,7 +44,13 @@
 
 
 
+## 自动装配 进阶
 
+- xxxAutoConfiguration   自动装配类，向容器中自动配置组件
+
+- xxxProperties 封装着配置属性。
+
+  
 
 
 
