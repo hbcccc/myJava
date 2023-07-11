@@ -1,10 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh_CN">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
 </head>
 <body>
-$END$
+韩博骋
+<br/>
+好帅啊
+<hr/>
+好帅啊
+<button onclick="alert('hello')" >Indeed</button>
+
+<table border="1" width="300" height="300"  align="center" >
+    <tr>
+        <th colspan="2">1.1</th>
+        <th>1.3</th>
+        <th>1.4</th>
+        <th>1.5</th>
+    </tr>
+    <tr>
+        <th rowspan="2">2.1</th>
+        <th>2.2</th>
+        <th>2.3</th>
+        <th>2.4</th>
+        <th>2.5</th>
+    </tr>
+    <tr>
+
+        <th>3.2</th>
+        <th>3.3</th>
+        <th>3.4</th>
+        <th>3.5</th>
+    </tr>
+    <tr>
+        <th>4.1</th>
+        <th>4.2</th>
+        <th>4.3</th>
+        <th rowspan="2" colspan="2">4.4</th>
+
+    </tr>
+    <tr>
+        <th>5.1</th>
+        <th>5.2</th>
+        <th>5.3</th>
+
+    </tr>
+
+
+<!--    name属性可以用来分组（radio单选的选项组）-->
+    <!--
+        checked="checked" 表示默认选中
+    -->
+</table>
+
+<form>
+   <table>
+       <tr>
+           <td>姓名</td>
+           <td><input type="text" value="hbc"> </td>
+       </tr>
+       <tr>
+           <td>密码</td>
+           <td><input type="password"></td>
+       </tr>
+       <tr>
+           <td>性别</td>
+           <td>
+               <input type="radio" name="sex" checked="checked">man
+               <input type="radio" name="sex"> female
+           </td>
+       </tr>
+       <tr>
+           <td>语言</td>
+           <td>
+               <input type="checkbox" checked="checked"> Java
+               <input type="checkbox"> Python
+               <input type="checkbox"> C++
+           </td>
+       </tr>
+       <tr>
+           <td>家乡</td>
+           <td>
+               <select>
+                    <option>--选择省份--</option>
+                    <option selected="selected">广东</option>
+                    <option>湖北</option>
+                </select>
+           </td>
+       </tr>
+       <tr>
+           <td>个性签名</td>
+           <td> <textarea rows="10" cols="20">default value</textarea></td>
+       </tr>
+       <input type="reset" value="重置">
+       <input type="submit">
+       <input type="file">
+   </table>
+
+</form>
+
 </body>
 </html>
