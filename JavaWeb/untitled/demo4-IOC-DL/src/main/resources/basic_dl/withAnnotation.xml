@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="red" class="org.example.spring.basic_dl.d_withAnnotation.bean.red"></bean>
+    <bean id="green" class="org.example.spring.basic_dl.d_withAnnotation.bean.green"></bean>
+    <bean id="blue" class="org.example.spring.basic_dl.d_withAnnotation.bean.blue"></bean>
+<!--    <bean id="dog" class="org.example.spring.basic_dl.d_withAnnotation.bean.Dog"></bean>-->
+
+</beans>

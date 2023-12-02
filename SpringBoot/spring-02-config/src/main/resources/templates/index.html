@@ -1,0 +1,8 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<h1>hello word!!!</h1>
+<p>this is a html page</p>
+
+<h3 th:each="user:${users}" th:text="${user}"></h3>
+</body>
+</html>

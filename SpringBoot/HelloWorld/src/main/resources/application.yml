@@ -1,0 +1,6 @@
+cat:
+  name: resources/application.yml
+
+server:
+  port: 8082
+

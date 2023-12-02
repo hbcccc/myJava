@@ -1,9 +1,0 @@
-
-name: hbc
-server:
-  port: 8081
-
-
-person:
-  name: hbc
-  age: 23

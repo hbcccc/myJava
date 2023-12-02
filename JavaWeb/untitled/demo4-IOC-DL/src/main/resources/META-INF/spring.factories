@@ -1,0 +1,4 @@
+org.example.spring.configuration.g_enablejdbc.config.EnableJdbc=\
+   org.example.spring.configuration.g_enablejdbc.config.MysqlJdbcConfiguration,\
+   org.example.spring.configuration.g_enablejdbc.config.h2JdbcConfiguration,\
+  org.example.spring.configuration.g_enablejdbc.config.OracleJdbcConfiguration

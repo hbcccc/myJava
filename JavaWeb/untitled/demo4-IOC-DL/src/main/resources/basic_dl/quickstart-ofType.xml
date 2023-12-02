@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="xx" class="org.example.spring.basic_dl.c_oftype.DAO.impl.demoDaoImplxx"></bean>
+    <bean id="oracle" class="org.example.spring.basic_dl.c_oftype.DAO.impl.demoOracleDao"></bean>
+    <bean id="mysql" class="org.example.spring.basic_dl.c_oftype.DAO.impl.demoMysqlDao"></bean>
+
+</beans>

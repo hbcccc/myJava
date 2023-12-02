@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="person" class="org.example.spring.basic_di.a_quickstart_set.Bean.Person">
+        <property name="name" value="test-person-byset"></property>
+        <property name="age" value="18"></property>
+     </bean>
+
+    <bean id="cat" class="org.example.spring.basic_di.a_quickstart_set.Bean.Cat">
+        <property name="name" value="test-cat-byset"></property>
+        <property name="age" value="3"></property>
+        <property name="master" ref="person"></property>
+    </bean>
+</beans>
