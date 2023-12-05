@@ -1,3 +1,9 @@
+# MVC常用注解
+
+- @Repository 用于注解Dao类
+- @Service 用于注解service层的类
+- @Controller 同理
+
 # Web需要解决的问题
 
 - 导入静态资源
@@ -61,7 +67,7 @@ springboot也是一样，其中一个称之为模板引擎的组件就是搞这�
 
 ## 拓展springMVC的feature
 
-比如我们不想用thymeleaf这个viewResolver，我们要用自己创建的，那怎么才能用上呢？
+比如我们不想用thymeleaf这个viewResolver（模板引擎、视图解析器），我们要用自己创建的，那怎么才能用上呢？
 
 答案：在**WebMvcConfigurer实现类**的上面标注**@Configuration**，在内部声明好ViewResolver类型的bean即可。
 
@@ -70,6 +76,7 @@ springboot也是一样，其中一个称之为模板引擎的组件就是搞这�
 ```java
 @Configuration
 public class MyConfig implements WebMvcConfigurer {
+    //把ViewResolver添加到到容器里
     @Bean
     public ViewResolver myViewResolver(){
         return  new MyViewResolver();
@@ -183,7 +190,7 @@ public class MyLocaleResolver implements LocaleResolver {
     }
 ```
 
-关键点：**bean名称必须是localeResolver**
+关键点：**bean名称必须是localeResolver**，因为spring底层会根据bean的名称来添加localeResolver，改了识别不到，只会当作普通的bean。
 
 
 
@@ -240,7 +247,170 @@ public class MyMvcConfig implements WebMvcConfigurer {
 }
 ```
 
+可以看到以上@Configuration注解和WebMvcConmfigurer接口配合，在内部重写方法，就完成了springMVC的feature拓展。
+
+## Jdbc连接数据库
+
+在application.yaml的配置文件中，声明好connector、dataSource类型以及属性就行。然后在Dao类中加入jdbcTemplate的自动注入@Autowired
 
 
-## 阿萨
 
+------
+
+
+
+# Druid
+
+不用springBoot内置的几个默认dataSource，我们换用第三方的，如Druid，可以这样去配置。
+
+使用方式：
+
+1. 首先添加Druid依赖，可以从mavenRepository官网查询
+
+2. 在application.yaml中写入以下配置, 以此设定使用第三方的dataSource实现
+
+   ```yaml
+   spring:
+   	datasource:
+   		username: xxx
+   		password: xxx
+   		url: jdbc:mysql//xxxx
+   		driver-class-name: com.mysql.xxxx.Driver
+   		#以下是要添加的
+   		type: com.alibaba.druid.pool.DruidDataSource
+   ```
+
+   
+
+3. 创建druid相关的属性配置文件，放在application.yaml中。
+
+4. ```yaml
+   myDruidConfig:
+   	# 常规属性
+   	minIdel: 5
+   	maxActive: 20
+   	
+   	#让Druid优于其他dataSource的关键，可以配置功能强大的拦截器，有这样几种: stat用于监控统计  Log4j用于日志, wall用于防止sql注入攻击。 需要这些功能就填入进去
+   	filters: stat, wall, log4j
+   	#这些拦截器的依赖需要我们自己写入到maven依赖中，不然会报错
+   ```
+
+   
+
+5. 将属性配置绑定到DruidDataSource实例中。具体而言需要创建一个配置类。
+
+   ```java
+   @Configuration
+   public class DruidConfig{
+       
+       @ConfigurationProperties(prefix="myDruidConfig")
+       @Bean
+       public DataSource druidDataSource){
+           return new DruidDataSource();
+       }
+       
+       //我估计druid内部会自动注入以下bean作为自己的属性。
+       @Bean
+        public ServletRegistrationBean statViewServlet(){
+            ServletRegistrationBean<StatViewServlet> bean = new 
+                ServletRegistrationBean<>(new StatViewServlet());
+            
+            HashMap<String, String> initParams = new HashMap<>();
+            
+            //这两个key是druid固定的，定义在druid库的常量中的
+            initParams.put("loginUsername", "admin");
+            initParams.put("loginPassword", "123456");
+            
+            //允许谁能访问
+            initParams.put("allow", "");
+            
+         
+            bean.setInitParameters(initParameters);
+            return bean;         
+        } 
+   }
+   ```
+
+
+
+------
+
+
+
+# Mybatis
+
+## 1，基础使用
+
+1. 创建Mapper层（Dao层）
+
+   ```java
+   @Mapper     //用于mybatis标识
+   @Repository //用于注入IOC
+   public UserMapper{
+       User getUserById(Integer id);
+       int addUser(User user);
+   }
+   ```
+
+2. 创建mapper的配置文件。放在 resources/mybatis/mapper目录下面. 以UserMapper.xml为例
+
+   ```xml
+   <mapper namespace="com.hbc.mapper.UserMapper">
+       <select id="getUserById" resultType="User">
+           select * from user where id = #{id};
+       </select>
+       
+       <insert id="addUser" parameterType="User">
+          insert into user(id, name, pwd) values (#{id}, #{name}, #{pwd});
+       </insert>
+       
+       <update>
+       	......
+       </update>
+       
+       <delete>
+       	......
+       </delete>
+       
+   </mapper>
+   
+   ```
+
+   
+
+3. 在application.yaml文件配置相关信息
+
+   ```yaml
+   mybatis:
+   	type-aliases-package: com.hbc.pojo  # 这里是实体类的位置
+   	mappert-locations: classpath:mybatis/mapper/*.xml # 这里是mapper配置的xml文件
+   	
+   ```
+
+   
+
+4. Controller的编写（省得打代码，先不写service层了。controller直接调用mapper）
+
+```java
+   @RestController
+   public class UserController{
+   	@Autowired
+       private UserMapper userMapper; // Mapper实现类（Dao实现类）
+   
+   	@GetMapping("/getUserById")
+   	public User getUserById(Integer id){
+           User user = userMapper.getUserById(id);
+           return user;
+       }
+       
+       @GetMapping("/addUser")
+   	public User addUser(User user){
+           userMapper.addUser(user);
+           return "ok";
+       } 
+   }
+```
+
+5. 收工！ 可以发现，在~~传递参数~~以及对象封装方面，mybatis相比jdbcTemplate更加方便。原先需要自己定义RowMapper，现在不用了。**但是！原先Dao使用jdbcTemplate写法时可以简单地进行额外逻辑判断，但现在如果要加逻辑判断的话，要写在mapper.xml文件中**，不是java语法，需额外专门学习。
+
+![image-20231204232313666](d3-springbootWeb-1.assets/image-20231204232313666.png)

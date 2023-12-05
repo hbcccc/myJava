@@ -75,15 +75,55 @@ public class Cat {
 
 # 自动配置原理
 
+#### 整体过程
+
 1，如果有**@EnableAutoConfiguration**注解，springboot会读取**META-INF/spring.factories**文件内的信息，里面包含了所有自动配置类。
 
 2，springboot会判断是否需要激活哪些自动配置类，通过各种@conditional来实现
 
-3，之后对于需要激活的配置类，我们需要加载配置类的一些属性信息（一般xx自动配置类内部会有个**xxProperties**的属性类）。因此，配置类上会有**@EnableConfigurationProperties(xxProperties.class)**注解， 绑定了对应的配置属性类xxProperties.class， 而这个属性类上会有**@ConfigurationProperties(prefix= ”yy.xx“)**这样的注解，会从我们定义的**application.yaml**文件读取配置信息。
+3，之后对于需要激活的配置类，我们需要加载配置类的一些属性信息（一般xx自动配置类内部会有个**xxProperties**的属性类）。因此，配置类`xxxAutoConfiguration`上会有**@EnableConfigurationProperties(xxProperties.class)**注解， 绑定了对应的配置属性类xxProperties.class， 而这个属性类上会有**@ConfigurationProperties(prefix= ”yy.xx“)**这样的注解，会从我们定义的**application.yaml**文件读取配置信息。
 
 4，配置完成后，Spring Boot会将包含的所有的Bean注册到容器中，以供其他组件使用。
 
 
+
+#### @ConfigurationProperties
+
+这个注解常用于修饰xxxProperties.class，而这个类上面也会有@Configuration 或者 @Component注解（没这两个也行，但需要在主类上加上@ConfigurationpropertiesScan注解来扫描注册xxxProperties所在的包, 或者**@EnableConfigurationProperties**注解来绑定xxProperties.class这个类：**没错，自动配置就是如此由这两个注解配合完成的**）
+
+
+
+此外，除了以上功能（用于springboot的自动配置），这个注解也能用于我们自己构建bean的属性注入。具体来说：比如我们定义了User类
+
+```java
+@C
+@ConfigurationProperties(prefix="my.userConfig")
+public User{
+	String name;
+    Integer age;
+}
+
+```
+
+或者如下：
+
+```java
+//第一个类User.class
+public User{
+	String name;
+    Integer age;
+}
+
+//第二个类 MyConfig.class
+@Configuration
+public MyConfig{
+	@Bean
+    @ConfigurationProperties(prefix="my.userConfig")
+    public User user(){
+        return new User();
+    }
+}
+```
 
 
 
