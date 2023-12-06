@@ -273,20 +273,22 @@ public class MyMvcConfig implements WebMvcConfigurer {
    ```yaml
    spring:
    	datasource:
-   		username: xxx
-   		password: xxx
-   		url: jdbc:mysql//xxxx
-   		driver-class-name: com.mysql.xxxx.Driver
    		#以下是要添加的
    		type: com.alibaba.druid.pool.DruidDataSource
    ```
-
    
-
+   
+   
 3. 创建druid相关的属性配置文件，放在application.yaml中。
 
 4. ```yaml
    myDruidConfig:
+   	# 连接属性
+       username: xxx
+       password: xxx
+       url: jdbc:mysql//xxxx
+       driver-class-name: com.mysql.xxxx.Driver
+       
    	# 常规属性
    	minIdel: 5
    	maxActive: 20
@@ -295,16 +297,17 @@ public class MyMvcConfig implements WebMvcConfigurer {
    	filters: stat, wall, log4j
    	#这些拦截器的依赖需要我们自己写入到maven依赖中，不然会报错
    ```
-
    
-
+   
+   
 5. 将属性配置绑定到DruidDataSource实例中。具体而言需要创建一个配置类。
 
    ```java
    @Configuration
    public class DruidConfig{
        
-       @ConfigurationProperties(prefix="myDruidConfig")
+       //prefix必须全小写
+       @ConfigurationProperties(prefix="mydruidconfig")
        @Bean
        public DataSource druidDataSource){
            return new DruidDataSource();
@@ -314,7 +317,7 @@ public class MyMvcConfig implements WebMvcConfigurer {
        @Bean
         public ServletRegistrationBean statViewServlet(){
             ServletRegistrationBean<StatViewServlet> bean = new 
-                ServletRegistrationBean<>(new StatViewServlet());
+                ServletRegistrationBean<>(new StatViewServlet(), "/druid/*");
             
             HashMap<String, String> initParams = new HashMap<>();
             
@@ -326,7 +329,7 @@ public class MyMvcConfig implements WebMvcConfigurer {
             initParams.put("allow", "");
             
          
-            bean.setInitParameters(initParameters);
+            bean.setInitParameters(initParams);
             return bean;         
         } 
    }
@@ -340,6 +343,8 @@ public class MyMvcConfig implements WebMvcConfigurer {
 
 # Mybatis
 
+文档参考：[mybatis – MyBatis 3 | Getting started](https://mybatis.org/mybatis-3/getting-started.html)
+
 ## 1，基础使用
 
 1. 创建Mapper层（Dao层）
@@ -347,7 +352,7 @@ public class MyMvcConfig implements WebMvcConfigurer {
    ```java
    @Mapper     //用于mybatis标识
    @Repository //用于注入IOC
-   public UserMapper{
+   public interface UserMapper{
        User getUserById(Integer id);
        int addUser(User user);
    }
@@ -356,23 +361,26 @@ public class MyMvcConfig implements WebMvcConfigurer {
 2. 创建mapper的配置文件。放在 resources/mybatis/mapper目录下面. 以UserMapper.xml为例
 
    ```xml
-   <mapper namespace="com.hbc.mapper.UserMapper">
+   <?xml version="1.0" encoding="UTF-8"?>
+   <!DOCTYPE   mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+           "http://mybatis.org/dtd/mybatis-3-mapper.dtd"
+           >
+   <mapper namespace="com.hbc.spring05mmybatis.mapper.UserMapeer">
        <select id="getUserById" resultType="User">
-           select * from user where id = #{id};
+           select * from testUser where id = #{id};
        </select>
-       
+   
        <insert id="addUser" parameterType="User">
-          insert into user(id, name, pwd) values (#{id}, #{name}, #{pwd});
+           insert into testUser(id, name, age) values (#{id}, #{name}, #{age});
        </insert>
        
-       <update>
+           <update>
        	......
        </update>
        
        <delete>
        	......
        </delete>
-       
    </mapper>
    
    ```
@@ -415,3 +423,17 @@ public class MyMvcConfig implements WebMvcConfigurer {
 5. 收工！ 可以发现，在~~传递参数~~以及对象封装方面，mybatis相比jdbcTemplate更加方便。原先需要自己定义RowMapper，现在不用了。**但是！原先Dao使用jdbcTemplate写法时可以简单地进行额外逻辑判断，但现在如果要加逻辑判断的话，要写在mapper.xml文件中**，不是java语法，需额外专门学习。
 
 ![image-20231204232313666](d3-springbootWeb-1.assets/image-20231204232313666.png)
+
+
+
+
+
+
+
+entity: pojo
+
+dao->XXXmapper接口{@Mapper @Repository}
+
+resource-> xxxMapper.xml{写sql语句，与mapper定义的接口对接}
+
+application.yaml-> 配置dataSource，配置mybatis{实体类目录pojo， XXXMapper.xml所在目录}

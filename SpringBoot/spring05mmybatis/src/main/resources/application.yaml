@@ -1,0 +1,14 @@
+# 应用服务 WEB 访问端口
+server:
+  port:
+    8080
+mybatis:
+  type-aliases-package: com.hbc.spring05mmybatis.pojo
+  mapper-locations: classpath:mybatis/mapper/*.xml
+
+spring:
+  datasource:
+    username: root
+    password: Asdfzxcv123!mysql
+    url: jdbc:mysql://192.168.2.144:3306/spring04mybatis?useUnicode=true&characterEncoding=utf-8
+    driver-class-name: com.mysql.cj.jdbc.Driver

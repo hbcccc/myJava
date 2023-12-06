@@ -96,7 +96,6 @@ public class Cat {
 此外，除了以上功能（用于springboot的自动配置），这个注解也能用于我们自己构建bean的属性注入。具体来说：比如我们定义了User类
 
 ```java
-@C
 @ConfigurationProperties(prefix="my.userConfig")
 public User{
 	String name;
