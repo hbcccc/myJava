@@ -415,3 +415,26 @@ public class MyMvcConfig implements WebMvcConfigurer {
 5. 收工！ 可以发现，在~~传递参数~~以及对象封装方面，mybatis相比jdbcTemplate更加方便。原先需要自己定义RowMapper，现在不用了。**但是！原先Dao使用jdbcTemplate写法时可以简单地进行额外逻辑判断，但现在如果要加逻辑判断的话，要写在mapper.xml文件中**，不是java语法，需额外专门学习。
 
 ![image-20231204232313666](d3-springbootWeb-1.assets/image-20231204232313666.png)
+
+
+----
+
+
+
+# springSecurity
+
+是针对Spring项目的安全框架，只用进行少量的配置，就能完成强大的安全管理。
+
+几个关键类与注解
+
+- WebSecurityConfigurerAdapter： 自定义Security策略
+- AuthenticationManagerBuilder： 自定义认证策略
+- @EnableWebSecurity: 开启WebSecurity模式
+
+
+
+Spring Security的两个主要目标：”认证“和”授权“
+
+认证：是面向用户的， eg，用户与vip等级，给用户一个vip等级
+
+授权：是面向内容的，eg，vip页面与vip等级，对应等级的才能进
