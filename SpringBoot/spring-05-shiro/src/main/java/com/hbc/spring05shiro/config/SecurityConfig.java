@@ -23,7 +23,7 @@ SecurityConfig extends  WebSecurityConfigurerAdapter{
                 .antMatchers("/level3/**").hasRole("vip3");
 
         //没权限的默认跳转至登陆页面
-        http.formLogin();
+        http.formLogin().loginPage("/toLogin");
         http.logout().logoutSuccessUrl("/");
 
     }

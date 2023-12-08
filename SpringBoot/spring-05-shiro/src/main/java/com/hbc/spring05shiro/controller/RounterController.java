@@ -13,10 +13,10 @@ public class RounterController {
 
 
 
-//    @RequestMapping("/toLogin")
-//    public String toLogin(){
-//        return "views/login";
-//    }
+    @RequestMapping("/toLogin")
+    public String toLogin(){
+        return "views/login";
+    }
     @RequestMapping("/level1/{id}")
     public String toLoginV1(@PathVariable("id") int id){
         return "views/level1/"+ id;

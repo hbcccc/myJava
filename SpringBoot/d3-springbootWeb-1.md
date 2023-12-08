@@ -273,20 +273,22 @@ public class MyMvcConfig implements WebMvcConfigurer {
    ```yaml
    spring:
    	datasource:
-   		username: xxx
-   		password: xxx
-   		url: jdbc:mysql//xxxx
-   		driver-class-name: com.mysql.xxxx.Driver
    		#以下是要添加的
    		type: com.alibaba.druid.pool.DruidDataSource
    ```
-
    
-
+   
+   
 3. 创建druid相关的属性配置文件，放在application.yaml中。
 
 4. ```yaml
    myDruidConfig:
+   	# 连接属性
+       username: xxx
+       password: xxx
+       url: jdbc:mysql//xxxx
+       driver-class-name: com.mysql.xxxx.Driver
+       
    	# 常规属性
    	minIdel: 5
    	maxActive: 20
@@ -295,16 +297,17 @@ public class MyMvcConfig implements WebMvcConfigurer {
    	filters: stat, wall, log4j
    	#这些拦截器的依赖需要我们自己写入到maven依赖中，不然会报错
    ```
-
    
-
+   
+   
 5. 将属性配置绑定到DruidDataSource实例中。具体而言需要创建一个配置类。
 
    ```java
    @Configuration
    public class DruidConfig{
        
-       @ConfigurationProperties(prefix="myDruidConfig")
+       //prefix必须全小写
+       @ConfigurationProperties(prefix="mydruidconfig")
        @Bean
        public DataSource druidDataSource){
            return new DruidDataSource();
@@ -314,7 +317,7 @@ public class MyMvcConfig implements WebMvcConfigurer {
        @Bean
         public ServletRegistrationBean statViewServlet(){
             ServletRegistrationBean<StatViewServlet> bean = new 
-                ServletRegistrationBean<>(new StatViewServlet());
+                ServletRegistrationBean<>(new StatViewServlet(), "/druid/*");
             
             HashMap<String, String> initParams = new HashMap<>();
             
@@ -326,7 +329,7 @@ public class MyMvcConfig implements WebMvcConfigurer {
             initParams.put("allow", "");
             
          
-            bean.setInitParameters(initParameters);
+            bean.setInitParameters(initParams);
             return bean;         
         } 
    }
@@ -340,6 +343,8 @@ public class MyMvcConfig implements WebMvcConfigurer {
 
 # Mybatis
 
+文档参考：[mybatis – MyBatis 3 | Getting started](https://mybatis.org/mybatis-3/getting-started.html)
+
 ## 1，基础使用
 
 1. 创建Mapper层（Dao层）
@@ -347,7 +352,7 @@ public class MyMvcConfig implements WebMvcConfigurer {
    ```java
    @Mapper     //用于mybatis标识
    @Repository //用于注入IOC
-   public UserMapper{
+   public interface UserMapper{
        User getUserById(Integer id);
        int addUser(User user);
    }
@@ -356,23 +361,26 @@ public class MyMvcConfig implements WebMvcConfigurer {
 2. 创建mapper的配置文件。放在 resources/mybatis/mapper目录下面. 以UserMapper.xml为例
 
    ```xml
-   <mapper namespace="com.hbc.mapper.UserMapper">
+   <?xml version="1.0" encoding="UTF-8"?>
+   <!DOCTYPE   mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+           "http://mybatis.org/dtd/mybatis-3-mapper.dtd"
+           >
+   <mapper namespace="com.hbc.spring05mmybatis.mapper.UserMapeer">
        <select id="getUserById" resultType="User">
-           select * from user where id = #{id};
+           select * from testUser where id = #{id};
        </select>
-       
+   
        <insert id="addUser" parameterType="User">
-          insert into user(id, name, pwd) values (#{id}, #{name}, #{pwd});
+           insert into testUser(id, name, age) values (#{id}, #{name}, #{age});
        </insert>
        
-       <update>
+           <update>
        	......
        </update>
        
        <delete>
        	......
        </delete>
-       
    </mapper>
    
    ```
@@ -416,6 +424,14 @@ public class MyMvcConfig implements WebMvcConfigurer {
 
 ![image-20231204232313666](d3-springbootWeb-1.assets/image-20231204232313666.png)
 
+entity: pojo
+
+dao->XXXmapper接口{@Mapper @Repository}
+
+resource-> xxxMapper.xml{写sql语句，与mapper定义的接口对接}
+
+application.yaml-> 配置dataSource，配置mybatis{实体类目录pojo， XXXMapper.xml所在目录}
+
 
 ----
 
@@ -431,10 +447,281 @@ public class MyMvcConfig implements WebMvcConfigurer {
 - AuthenticationManagerBuilder： 自定义认证策略
 - @EnableWebSecurity: 开启WebSecurity模式
 
+比如vipX才能进levelX下的页面。先通过授权，来完成页面和权限的绑定；
 
+在通过认证，完成用户与权限的绑定。
+
+```java
+@EnableWebSecurity
+public class
+SecurityConfig extends  WebSecurityConfigurerAdapter{
+
+    //授权
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+//        super.configure(http);
+        //首页所有人可以访问，但功能也只有对应有权限的人才能访问
+        http.authorizeHttpRequests()
+                .antMatchers("/").permitAll()
+                .antMatchers("/level1/**").hasRole("vip1")
+                .antMatchers("/level2/**").hasRole("vip2")
+                .antMatchers("/level3/**").hasRole("vip3");
+
+        //没权限的默认跳转至登陆页面
+        http.formLogin().loginPage("/toLogin");
+        http.logout().logoutSuccessUrl("/");
+
+    }
+
+
+    //认证
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//        super.configure(auth);
+
+        //以下数据正常应该是从数据库读，但现在从内存里读。
+        auth.inMemoryAuthentication().passwordEncoder(new BCryptPasswordEncoder())
+                .withUser("hbc")
+                .password(new BCryptPasswordEncoder().encode( "123456"))
+                .roles("vip2", "vip3")
+                .and()
+                .withUser("root")
+                .password(new BCryptPasswordEncoder().encode( "123456"))
+                .roles("vip1","vip2", "vip3")
+                .and()
+                .withUser("guest")
+                .password(new BCryptPasswordEncoder().encode( "123456"))
+                .roles("vip1");
+
+    }
+}
+```
 
 Spring Security的两个主要目标：”认证“和”授权“
 
-认证：是面向用户的， eg，用户与vip等级，给用户一个vip等级
+c认证：是面向用户的， eg，用户与vip等级，给用户一个vip等级
 
-授权：是面向内容的，eg，vip页面与vip等级，对应等级的才能进
+z授权：是面向内容的，eg，vip页面与vip等级，对应等级的才能进
+
+
+
+
+
+# shiro
+
+## 1, 基础使用
+
+​	
+
+### 导入依赖
+
+```xml
+<dependency>
+    <groupId>org.apache.shiro</groupId>
+    <artifactId>shiro-spring</artifactId>
+    <version>1.13.0</version>
+</dependency>
+```
+
+
+
+### 创建shiro的配置类,以此往IOC中注入shiro的bean。
+
+在内部导入realm -> SecurityManager -> ShiroFilterFactoryBean。
+
+| 名称                   | 作用                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| realm                  | 负责和底层数据库打交道，配置认证和授权。                     |
+| Manager                | 管理所有用户                                                 |
+| Subject                | 用户（通过 `SecurityUtils.getSubject()`方法获取）            |
+| ShiroFilterFactoryBean | 设置拦截器，比如页面的授权拦截器，以及一些认证、授权后的页面跳转设置 |
+
+
+
+```java
+
+@Configuration
+public class ShiroConfig {
+
+    // ShiroFilterFactoryBean
+    @Bean
+    public ShiroFilterFactoryBean shiroFilterFactoryBean(){
+        ShiroFilterFactoryBean bean = new ShiroFilterFactoryBean();
+        bean.setSecurityManager(defaultWebSecurityManager());
+        System.out.println("====>from shiroBean: mannager id: "+bean.getSecurityManager());
+
+        /*
+        * anno
+        * authc
+        * user
+        * perms
+        * role
+        * */
+        Map<String, String> filterMap = new HashMap<>();
+
+        //添加shiro的内置过滤器,完成页面拦截
+//        filterMap.put("/user/add", "authc");
+//        filterMap.put("/user/update", "authc");
+//        bean.setFilterChainDefinitionMap(filterMap);
+
+        //授权
+        filterMap.put("/user/add", "perms[user:add]");
+        filterMap.put("/user/*", "authc");
+        bean.setFilterChainDefinitionMap(filterMap);
+
+
+
+        //设置未认证时的跳转登陆页面url
+        bean.setLoginUrl("/toLogin");
+
+        //设置未授权时的跳转页面
+        bean.setUnauthorizedUrl("/noauth");
+
+        return  bean;
+    }
+
+
+
+    //DefaultWebSecurityManager 管用户的
+    @Bean
+    public DefaultWebSecurityManager defaultWebSecurityManager(){
+        DefaultWebSecurityManager manager = new DefaultWebSecurityManager();
+        manager.setRealm(userREALM());
+        System.out.println("realms sizE:"+ manager.getRealms().size());
+        System.out.println("=======>from manager: "+((ArrayList) manager.getRealms()).get(0));
+        System.out.println("manager id: "+ manager);
+        return manager;
+    }
+
+
+    //realm, 管数据的
+    @Bean
+    public UserREALM userREALM(){
+        UserREALM userREALM =  new UserREALM();
+        System.out.println("========>from userREALM: "+ userREALM);
+        return  userREALM;
+    }
+
+}
+```
+
+### 创建自定义的realm实现
+
+```java
+public class UserREALM extends AuthorizingRealm {
+    @Autowired
+    UserService userService;
+
+    UserREALM(){
+        System.out.println("userRealm is created");
+    }
+
+    //授权
+    @Override
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
+        System.out.println("执行了=>授权");
+        SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
+        info.addStringPermission("user:add");
+        return info;
+    }
+
+
+    //认证
+    @Override
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
+        System.out.println("执行了=>认证");
+        UsernamePasswordToken token = (UsernamePasswordToken) authenticationToken;
+        User user = userService.getUserByName(token.getUsername());
+
+         if(user == null) //没在数据库找到该用户
+            return  null;
+
+
+        //密码认证，由shiro来去做. 此处传递的是数据库中user的密码
+        return new SimpleAuthenticationInfo("", user.getPwd() ,"");
+    }
+}
+```
+
+比如我现在是一个用户想要访问某个页面，shiro会进入自定义的realm实现，对当前用户进行认证和授权的判断以及增强。
+
+**eg，认证：**在`doGetAuthenticationInfo`函数中，可以从数据库中寻找有无我这个用户或者密码是否正确，并进行相应的响应（此处配合下面controller的/login代码中的`subject.login(token)`）。
+
+**eg, 授权**：在`doGetAuthorizationInfo`函数中，可以完成当前权限的判断，来决定是否增加新权限。
+
+这两个函数如果认证或者授权不通过，会返回null。
+
+
+
+### 设置controller
+
+接受用户的登陆信息，然后通过**`subject.login(token);`**进行登陆操作。如果登陆失败，会弹出Exception，eg账号名称不正确`UnknownAccountException`， 密码错误`IncorrectCredentialsException`。
+
+```java
+    @RequestMapping("/login")
+    public String login(String username, String password, Model model){
+        //获取当前用户
+        Subject subject = SecurityUtils.getSubject();
+        //令牌
+        UsernamePasswordToken token = new UsernamePasswordToken(username, password);
+
+        try {
+            //登陆
+            subject.login(token);
+            return "redirect:/";
+        }catch (UnknownAccountException e){
+            model.addAttribute("msg", "unknownAccount error !");
+            return "login";
+        }catch (IncorrectCredentialsException e){
+            model.addAttribute("msg", "incorrectPassWord error !");
+            return "login";
+        }
+    }
+
+
+    @RequestMapping("/logout")
+    public String logout(){
+        Subject subject = SecurityUtils.getSubject();
+        subject.logout();
+        return "redirect:/";
+    }
+
+    @RequestMapping("/noauth")
+    @ResponseBody
+    public String noAuth(){
+        return "未经授权，无法访问";
+    }
+
+
+```
+
+
+
+
+
+## 理解
+
+1. 点击一个网页，shiro会把我这个用户请求创建封装成一个subject对象，然后通过**Shiro拦截**（获取注入到IOC的ShiroFilterFactoryBean获取）。在这个拦截器里，定义了**拦截哪些网页**，以及需要什么权限。
+
+2. 对于被拦截的网页， 如果当前subject还没login，甚至直接完成拦截了，不继续后续（或者仅跳过步骤3、4），直接跳转到设定好的跳转页面（理由：点击被拦截的网页， realm的doAuthC和doAuthZ没有sout消息）。
+
+3. 跳到登陆页面后，提交form到指定的controller的url中，shiro通过`SecurityUtils.getSubject();`获取当前subject对象，并把登陆信息封装为`UsernamePasswordToken`类型的token，使用` subject.login(token);`尝试进行登陆。
+
+4. 如果当前subject已经login了，然后会拦截是否生效前，会把用户的**认证和授权信息**通过**realm进行判断**，来判断是否通过认证或者授权，这个过程我们可以连接到数据库来进行实际逻辑的判断来进行认证授权的赋予，并返回用户**最终的认证和授权信息**。
+
+5. 之后重新到**Shiro拦截器**里，对**用户对象状态**与**拦截器`Map<url, 认证or授权条件>`**来进行匹配，看我们最终的认证和授权信息来**决定最终是否通过拦截器**
+
+6. Shiro拦截器（ShiroFilterFactoryBean）也定义了一些**跳转url**，来指导认证、授权通过（不通过）时如何响应请求。
+
+   
+
+---
+
+
+
+# Swagger
+
+
+
+
+

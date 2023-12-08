@@ -1,0 +1,42 @@
+
+
+# 应用服务 WEB 访问端口
+server:
+  port: 8080
+
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+
+  thymeleaf:
+    # 检查模板是否存在，然后再呈现
+    cache: true
+    # 检查模板位置是否正确（默认值 :true ）
+    check-template-location: true
+    #Content-Type 的值（默认值： text/html ）
+    content-type: text/html
+    # 开启 MVC Thymeleaf 视图解析（默认值： true ）
+    enabled: true
+    # 模板编码
+    encoding: UTF-8
+
+    # 要运⽤于模板之上的模板模式。另⻅ StandardTemplate-ModeHandlers( 默认值： HTML5)
+    mode: HTML5
+    # 在构建 URL 时添加到视图名称前的前缀（默认值： classpath:/templates/ ）
+    prefix: classpath:/templates/
+    # 在构建 URL 时添加到视图名称后的后缀（默认值： .html ）
+    suffix: .html
+
+mydruidconfig:
+  minIdel: 5
+  maxActive: 20
+  #让Druid优于其他dataSource的关键，可以配置功能强大的拦截器，有这样几种: stat用于监控统计  Log4j用于日志, wall用于防止sql注入攻击。 需要这些功能就填入进去
+  filters: stat
+  #这些拦截器的依赖需要我们自己写入到maven依赖中，不然会报错
+  username: root
+  password: Asdfzxcv123!mysql
+  url: jdbc:mysql://192.168.2.144:3306/spring04mybatis?useUnicode=true&characterEncoding=utf-8
+  driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+
