@@ -721,6 +721,203 @@ public class UserREALM extends AuthorizingRealm {
 
 # Swagger
 
+能够扫描到controller定义的各种接口并用ui界面展示出来，方便前后端开发协同。参考文档：[Setting Up Swagger 2 with a Spring REST API | Baeldung](https://www.baeldung.com/swagger-2-documentation-for-spring-rest-api#swagger)
+
+![image-20231208120435171](d3-springbootWeb-1.assets/image-20231208120435171.png)
+
+
+
+## 1, 基础配置
+
+### 添加依赖
+
+```xml
+<dependency>
+    <groupId>com.spring4all</groupId>
+    <artifactId>swagger-spring-boot-starter</artifactId>
+    <version>1.9.1.RELEASE</version>
+</dependency>
+```
+
+### 添加配置类
+
+```java
+@EnableSwagger2
+@Configuration
+// @Profile({"dev","test"})
+public class SwaggerConfig  {
+    @Bean
+    public Docket api(Environment environment){
+        Profiles profiles = Profiles.of("dev", "test");
+        boolean flag = environment.acceptsProfiles(profiles);
+
+        return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo())
+                .groupName("HelloGroup")
+                .enable(flag) //来决定是否启用，但我觉得还是在类上加上@Profile注解更方便
+                .select()
+                //RequestHandlerSelectors用于配置要扫描的接口的方式
+                    //basePackage为扫描指定的包下的接口
+                    //none、any如名所说
+                    //withClassAnnotation： 根据类上的注解来筛选扫描， eg： RestController.class
+                    //withMethodAnnotation： 根据方法上的注解来筛选扫描， eg： GetMapping.class
+                .apis(RequestHandlerSelectors.basePackage("com.example.spring08swagger.controller"))
+                //.paths() 用于过滤路径, 比如有UserController， HelloController，
+                //输入参数"/hello/**"， 则只有url前缀有"/hello"的请求才会被扫描到swagger
+                .paths(PathSelectors.ant("/hello/**"))
+                .build();
+    }
+	
+    //定义多个Docket，形成不同的组
+    @Bean
+    public Docket api2(Environment environment){
+        Profiles profiles = Profiles.of("dev", "test");
+        boolean flag = environment.acceptsProfiles(profiles);
+        return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo())
+                .groupName("UserGroup")
+                .enable(flag)
+                .select()
+                //RequestHandlerSelectors用于配置要扫描的接口的方式
+                //basePackage为扫描指定的包下的接口
+                //none、any如名所说
+                //withClassAnnotation： 根据类上的注解来筛选扫描， eg： RestController.class
+                //withMethodAnnotation： 根据方法上的注解来筛选扫描， eg： GetMapping.class
+                .apis(RequestHandlerSelectors.basePackage("com.example.spring08swagger.controller"))
+                //.paths() 用于过滤路径, 比如有UserController， HelloController，
+                //输入参数"/user/**"， 则只有url前缀有"/user"的请求才会被扫描到swagger
+                .paths(PathSelectors.ant("/user/**"))
+                .build();
+    }
+
+
+    private ApiInfo apiInfo(){
+        Contact contact = new Contact("hbc",
+                "https://ieeexplore.ieee.org/author/37089935525",
+                "1242582816@qq.com");
+
+        return new ApiInfo("hbcPracSwagger",
+                "this is a small step to offers",
+                "v1.0",
+                "http://192.168.2.144",
+                contact,
+                "Apache 2.0",
+                "http://www.apache.org/licenses/LICENSE-2.0",
+                new ArrayList()
+                );
+    }
+
+}
+
+
+```
+
+可以发现我们能定义多个Docket，并命名不同的groupName。开发中可以对应不同的开发者， 他们负责不同的controller，这样可以在ui页面快速选择group，来查看对应的接口swagger信息。
+
+### 关于实体类的swagger扫描
+
+需要controller的返回值为“xx实体类”，这样才会被swagger扫描到该类
+
+![image-20231208120339636](d3-springbootWeb-1.assets/image-20231208120339636.png)
+
+
+
+![image-20231208120351170](d3-springbootWeb-1.assets/image-20231208120351170.png)
+
+### 提示消息
+
+##### 1，实体类提示消息
+
+我们可以给实体类添加提示信息，让swagger在ui界面展示，方便前后端协同开发。具体方法为在实体类，以及实体类属性上使用**@ApiModel**与**@ApiModelProperty**注解。
+
+```java
+@ApiModel("用户实体类")
+public class User {
+    @ApiModelProperty("用户名")
+    public String name;
+    @ApiModelProperty("年龄")
+    public Integer age;
+}
+```
+
+![image-20231208121114898](d3-springbootWeb-1.assets/image-20231208121114898.png)
+
+可以发现现在model框有提示消息了
+
+##### 2，controller提示消息
+
+两个注解：
+
+- **@ApiOperation**用于注解方法，告诉别人这个方法是干啥的；
+
+- **@ApiParam**用于注解输入参数，告诉别人这个输入参数是啥；
+
+```java
+@ApiOperation("Hello2控制类mapping")
+@GetMapping("/hello2/{msg}")
+public String hello2(@PathVariable("msg") @ApiParam("要打印的消息") String msg){
+        return  "from hello2: " + msg;
+}
+```
+
+![image-20231208124006705](d3-springbootWeb-1.assets/image-20231208124006705.png)
+
+
+
+## 2，基础使用
+
+进入对应的接口，点击tryout，然后输入参数，点Execute
+
+如果需要传入参数，看起来是需要getMapping配合restful；或者PostMapping才行。
+
+getMapping和普通传参那种不支持。
+
+![image-20231208124054699](d3-springbootWeb-1.assets/image-20231208124054699.png)
+
+以下是执行结果：
+
+![image-20231208124115185](d3-springbootWeb-1.assets/image-20231208124115185.png)
+
+可以看到能够返回json数据
+
+
+
+---
+
+
+
+
+
+# 异步
+
+开启：
+
+- 在application上加上**@EnableAsync**;
+
+-  在方法上面加上**@Aysnc** 注解
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
